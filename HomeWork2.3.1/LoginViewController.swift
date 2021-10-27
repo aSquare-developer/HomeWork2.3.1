@@ -18,6 +18,9 @@ class LoginViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -40,6 +43,11 @@ class LoginViewController: UIViewController {
         welcomeVC.welcome = usernameTF
     }
     
+    // Метод для скрытия клавиатуры тапом по экрану
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
+    }
+    
     @IBAction func unwind(for segue: UIStoryboardSegue) {
         guard segue.source is WelcomeViewController else { return }
         usernameTF.text = ""
@@ -53,17 +61,26 @@ class LoginViewController: UIViewController {
     @IBAction func forgotPasswordButtonPressed() {
         showAlert(title: "Oops!", message: "Your password is Password 😉")
     }
+        
     
-    // Метод для скрытия клавиатуры тапом по экрану
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        self.view.endEditing(true)
+    @objc private func keyboardWillShow(notification: NSNotification) {
+        
+        guard let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue else {
+            return
+        }
+        
+        self.view.frame.origin.y = 0 - keyboardSize.height / 2
+    }
+    
+    @objc private func keyboardWillHide() {
+        self.view.frame.origin.y = 0
     }
     
 }
 
 extension LoginViewController {
     
-    func showAlert(title: String, message: String) {
+    private func showAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let okAction = UIAlertAction(title: "OK", style: .default)
         
